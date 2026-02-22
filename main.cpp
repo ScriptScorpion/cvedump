@@ -3,6 +3,7 @@
 #include <nlohmann/json.hpp>
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <filesystem>
 #include <fstream>
 #include <cstdlib>
@@ -12,7 +13,15 @@
 #else 
     std::exit(2);
 #endif
+
+
+std::string float_to_string(const double &value) {
+    std::stringstream s;
+    s << value;
+    return s.str();
+}
 struct Msg_structure {
+    std::string severity = ""; // TODO
     std::string affected = ""; 
     std::string cveid = "";
     std::string impact = "";
@@ -66,6 +75,7 @@ int main(int argc, char *argv[]) {
                 }
                 Msg_structure *Json_file = new Msg_structure();
                 auto json_data = nlohmann::json::parse(reader);
+
                 if (json_data.is_array()) {
                     Json_file->cveid = json_data[0]["cveId"];
                     Json_file->state = json_data[0]["state"];
@@ -93,6 +103,29 @@ int main(int argc, char *argv[]) {
                                     if (j+1 != json_data[1]["cna"]["affected"].size()) {
                                         Json_file->affected += '\n';
                                     }
+                                }
+                            }
+                        }
+
+                        if (!json_data[1]["cna"]["metrics"].is_null()) {
+                            if (!json_data[1]["cna"]["metrics"][0]["cvssV4_0"].is_null()) {
+                                if (!json_data[1]["cna"]["metrics"][0]["cvssV4_0"]["baseScore"].is_null() && !json_data[1]["cna"]["metrics"][0]["cvssV4_0"]["baseSeverity"].is_null()) {
+                                    Json_file->severity = float_to_string(json_data[1]["cna"]["metrics"][0]["cvssV4_0"]["baseScore"].get<double>()) + " " + std::string(json_data[1]["cna"]["metrics"][0]["cvssV4_0"]["baseSeverity"]); 
+                                }
+                            }
+                            else if (!json_data[1]["cna"]["metrics"][0]["cvssV3_1"].is_null()) {
+                                if (!json_data[1]["cna"]["metrics"][0]["cvssV3_1"]["baseScore"].is_null() && !json_data[1]["cna"]["metrics"][0]["cvssV3_1"]["baseSeverity"].is_null()) {
+                                    Json_file->severity = float_to_string(json_data[1]["cna"]["metrics"][0]["cvssV3_1"]["baseScore"].get<double>()) + " " + std::string(json_data[1]["cna"]["metrics"][0]["cvssV3_1"]["baseSeverity"]); 
+                                }
+                            }
+                            else if (!json_data[1]["cna"]["metrics"][0]["cvssV3_0"].is_null()) {
+                                if (!json_data[1]["cna"]["metrics"][0]["cvssV3_0"]["baseScore"].is_null() && !json_data[1]["cna"]["metrics"][0]["cvssV3_0"]["baseSeverity"].is_null()) {
+                                    Json_file->severity = float_to_string(json_data[1]["cna"]["metrics"][0]["cvssV3_0"]["baseScore"].get<double>()) + " " + std::string(json_data[1]["cna"]["metrics"][0]["cvssV3_0"]["baseSeverity"]); 
+                                }
+                            }
+                            else if (!json_data[1]["cna"]["metrics"][0]["cvssV2_0"].is_null()) {
+                                if (!json_data[1]["cna"]["metrics"][0]["cvssV2_0"]["baseScore"].is_null()) {
+                                    Json_file->severity = float_to_string(json_data[1]["cna"]["metrics"][0]["cvssV2_0"]["baseScore"].get<double>()); 
                                 }
                             }
                         }
@@ -170,7 +203,32 @@ int main(int argc, char *argv[]) {
                                 }
                             }
                         }
-                        
+                       
+
+                        if (!json_data["containers"]["cna"]["metrics"].is_null()) {
+                            if (!json_data["containers"]["cna"]["metrics"][0]["cvssV4_0"].is_null()) {
+                                if (!json_data["containers"]["cna"]["metrics"][0]["cvssV4_0"]["baseScore"].is_null() && !json_data["containers"]["cna"]["metrics"][0]["cvssV4_0"]["baseSeverity"].is_null()) {
+                                    Json_file->severity = float_to_string(json_data["containers"]["cna"]["metrics"][0]["cvssV4_0"]["baseScore"].get<double>()) + " " + std::string(json_data["containers"]["cna"]["metrics"][0]["cvssV4_0"]["baseSeverity"]); 
+                                }
+                            }
+                            else if (!json_data["containers"]["cna"]["metrics"][0]["cvssV3_1"].is_null()) {
+                                if (!json_data["containers"]["cna"]["metrics"][0]["cvssV3_1"]["baseScore"].is_null() && !json_data["containers"]["cna"]["metrics"][0]["cvssV3_1"]["baseSeverity"].is_null()) {
+                                    Json_file->severity = float_to_string(json_data["containers"]["cna"]["metrics"][0]["cvssV3_1"]["baseScore"].get<double>()) + " " + std::string(json_data["containers"]["cna"]["metrics"][0]["cvssV3_1"]["baseSeverity"]); 
+                                }
+                            }
+                            else if (!json_data["containers"]["cna"]["metrics"][0]["cvssV3_0"].is_null()) {
+                                if (!json_data["containers"]["cna"]["metrics"][0]["cvssV3_0"]["baseScore"].is_null() && !json_data["containers"]["cna"]["metrics"][0]["cvssV3_0"]["baseSeverity"].is_null()) {
+                                    Json_file->severity = float_to_string(json_data["containers"]["cna"]["metrics"][0]["cvssV3_0"]["baseScore"].get<double>()) + " " + std::string(json_data["containers"]["cna"]["metrics"][0]["cvssV3_0"]["baseSeverity"]); 
+                                }
+                            }
+                            else if (!json_data["containers"]["cna"]["metrics"][0]["cvssV2_0"].is_null()) {
+                                if (!json_data["containers"]["cna"]["metrics"][0]["cvssV2_0"]["baseScore"].is_null()) {
+                                    Json_file->severity = float_to_string(json_data["containers"]["cna"]["metrics"][0]["cvssV2_0"]["baseScore"].get<double>()); 
+                                }
+                            }
+                        }
+
+
                         if (!json_data["containers"]["cna"]["x_legacyV4Record"]["impact"].is_null()) {
                             if (!json_data["containers"]["cna"]["x_legacyV4Record"]["impact"].is_array()) {
                                 if (!json_data["containers"]["cna"]["x_legacyV4Record"]["impact"]["cvss"].is_null()) {
@@ -215,6 +273,7 @@ int main(int argc, char *argv[]) {
                 std::cout << "Status: " << Json_file->state << '\n';
                 std::cout << "CVE id: " << Json_file->cveid << '\n';
                 std::cout << "Impact: " << Json_file->impact << '\n';
+                std::cout << "Severity: " << Json_file->severity << '\n';
                 std::cout << "Affected: " << Json_file->affected << '\n';
                 std::cout << "Raw data: " << de.path().string() << '\n';
                 std::cout << "References: " << Json_file->references;
@@ -247,6 +306,7 @@ int main(int argc, char *argv[]) {
                     if (Json_file->state == "PUBLISHED") {
                         
                         Json_file->description = json_data[1]["cna"]["descriptions"][0]["value"];
+                        
                         if (!json_data[1]["cna"]["affected"][0]["product"].is_null()) {
                             if (std::string(json_data[1]["cna"]["affected"][0]["product"]) != "n/a") {
                                 Json_file->affected += '\n';
@@ -266,6 +326,29 @@ int main(int argc, char *argv[]) {
                                     if (j+1 != json_data[1]["cna"]["affected"].size()) {
                                         Json_file->affected += '\n';
                                     }
+                                }
+                            }
+                        }
+
+                        if (!json_data[1]["cna"]["metrics"].is_null()) {
+                            if (!json_data[1]["cna"]["metrics"][0]["cvssV4_0"].is_null()) {
+                                if (!json_data[1]["cna"]["metrics"][0]["cvssV4_0"]["baseScore"].is_null() && !json_data[1]["cna"]["metrics"][0]["cvssV4_0"]["baseSeverity"].is_null()) {
+                                    Json_file->severity = float_to_string(json_data[1]["cna"]["metrics"][0]["cvssV4_0"]["baseScore"].get<double>()) + " " + std::string(json_data[1]["cna"]["metrics"][0]["cvssV4_0"]["baseSeverity"]); 
+                                }
+                            }
+                            else if (!json_data[1]["cna"]["metrics"][0]["cvssV3_1"].is_null()) {
+                                if (!json_data[1]["cna"]["metrics"][0]["cvssV3_1"]["baseScore"].is_null() && !json_data[1]["cna"]["metrics"][0]["cvssV3_1"]["baseSeverity"].is_null()) {
+                                    Json_file->severity = float_to_string(json_data[1]["cna"]["metrics"][0]["cvssV3_1"]["baseScore"].get<double>()) + " " + std::string(json_data[1]["cna"]["metrics"][0]["cvssV3_1"]["baseSeverity"]); 
+                                }
+                            }
+                            else if (!json_data[1]["cna"]["metrics"][0]["cvssV3_0"].is_null()) {
+                                if (!json_data[1]["cna"]["metrics"][0]["cvssV3_0"]["baseScore"].is_null() && !json_data[1]["cna"]["metrics"][0]["cvssV3_0"]["baseSeverity"].is_null()) {
+                                    Json_file->severity = float_to_string(json_data[1]["cna"]["metrics"][0]["cvssV3_0"]["baseScore"].get<double>()) + " " + std::string(json_data[1]["cna"]["metrics"][0]["cvssV3_0"]["baseSeverity"]); 
+                                }
+                            }
+                            else if (!json_data[1]["cna"]["metrics"][0]["cvssV2_0"].is_null()) {
+                                if (!json_data[1]["cna"]["metrics"][0]["cvssV2_0"]["baseScore"].is_null()) {
+                                    Json_file->severity = float_to_string(json_data[1]["cna"]["metrics"][0]["cvssV2_0"]["baseScore"].get<double>()); 
                                 }
                             }
                         }
@@ -317,6 +400,7 @@ int main(int argc, char *argv[]) {
                     if (Json_file->state == "PUBLISHED") {
                         
                         Json_file->description = json_data["containers"]["cna"]["descriptions"][0]["value"];
+                        
                         if (!json_data["containers"]["cna"]["affected"][0]["product"].is_null()) {
                             if (std::string(json_data["containers"]["cna"]["affected"][0]["product"]) != "n/a") {
                                 Json_file->affected += '\n';
@@ -336,6 +420,29 @@ int main(int argc, char *argv[]) {
                                     if (j+1 != json_data["containers"]["cna"]["affected"].size()) {
                                         Json_file->affected += '\n';
                                     }
+                                }
+                            }
+                        }
+
+                        if (!json_data["containers"]["cna"]["metrics"].is_null()) {
+                            if (!json_data["containers"]["cna"]["metrics"][0]["cvssV4_0"].is_null()) {
+                                if (!json_data["containers"]["cna"]["metrics"][0]["cvssV4_0"]["baseScore"].is_null() && !json_data["containers"]["cna"]["metrics"][0]["cvssV4_0"]["baseSeverity"].is_null()) {
+                                    Json_file->severity = float_to_string(json_data["containers"]["cna"]["metrics"][0]["cvssV4_0"]["baseScore"].get<double>()) + " " + std::string(json_data["containers"]["cna"]["metrics"][0]["cvssV4_0"]["baseSeverity"]); 
+                                }
+                            }
+                            else if (!json_data["containers"]["cna"]["metrics"][0]["cvssV3_1"].is_null()) {
+                                if (!json_data["containers"]["cna"]["metrics"][0]["cvssV3_1"]["baseScore"].is_null() && !json_data["containers"]["cna"]["metrics"][0]["cvssV3_1"]["baseSeverity"].is_null()) {
+                                    Json_file->severity = float_to_string(json_data["containers"]["cna"]["metrics"][0]["cvssV3_1"]["baseScore"].get<double>()) + " " + std::string(json_data["containers"]["cna"]["metrics"][0]["cvssV3_1"]["baseSeverity"]); 
+                                }
+                            }
+                            else if (!json_data["containers"]["cna"]["metrics"][0]["cvssV3_0"].is_null()) {
+                                if (!json_data["containers"]["cna"]["metrics"][0]["cvssV3_0"]["baseScore"].is_null() && !json_data["containers"]["cna"]["metrics"][0]["cvssV3_0"]["baseSeverity"].is_null()) {
+                                    Json_file->severity = float_to_string(json_data["containers"]["cna"]["metrics"][0]["cvssV3_0"]["baseScore"].get<double>()) + " " + std::string(json_data["containers"]["cna"]["metrics"][0]["cvssV3_0"]["baseSeverity"]); 
+                                }
+                            }
+                            else if (!json_data["containers"]["cna"]["metrics"][0]["cvssV2_0"].is_null()) {
+                                if (!json_data["containers"]["cna"]["metrics"][0]["cvssV2_0"]["baseScore"].is_null()) {
+                                    Json_file->severity = float_to_string(json_data["containers"]["cna"]["metrics"][0]["cvssV2_0"]["baseScore"].get<double>()); 
                                 }
                             }
                         }
@@ -386,6 +493,7 @@ int main(int argc, char *argv[]) {
                         std::cout << "Status: " << Json_file->state << '\n';
                         std::cout << "CVE id: " << Json_file->cveid << '\n';
                         std::cout << "Impact: " << Json_file->impact << '\n';
+                        std::cout << "Severity: " << Json_file->severity << '\n';
                         std::cout << "Affected: " << Json_file->affected << '\n';
                         std::cout << "Raw data: " << de.path().string() << '\n';
                         std::cout << "References: " << Json_file->references;
