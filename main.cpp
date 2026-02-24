@@ -21,7 +21,7 @@ std::string float_to_string(const double &value) {
     return s.str();
 }
 struct Msg_structure {
-    std::string severity = ""; // TODO
+    std::string severity = "";
     std::string affected = ""; 
     std::string cveid = "";
     std::string impact = "";
